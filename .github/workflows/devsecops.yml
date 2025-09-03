@@ -16,6 +16,8 @@ jobs:
       # 1. Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # เพื่อให้ CodeQL scan ทุก branch / commit
 
       # 2. Initialize CodeQL
       - name: Initialize CodeQL
