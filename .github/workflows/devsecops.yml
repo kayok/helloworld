@@ -3,10 +3,9 @@ name: DevSecOps
 on:
   workflow_run:
     workflows: ["CI"]
-    types:
-      - completed
+    types: [completed]
   schedule:
-    - cron: "0 19 * * *"   # ทุกวันตี 2 (เวลาไทย UTC+7 → cron ต้องใช้ UTC = 19.00)
+    - cron: "0 19 * * *"  # ทุกวันตี 2 UTC+7
 
 jobs:
   security-scan:
@@ -14,13 +13,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      # 1. Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Run CodeQL Analysis
+      # 2. Initialize CodeQL
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: go
+
+      # 3. Run CodeQL analysis
+      - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
 
-      - name: Run Trivy Vulnerability Scanner
+      # 4. Run Trivy vulnerability scan
+      - name: Trivy Scan
         uses: aquasecurity/trivy-action@0.14.0
         with:
           scan-type: fs
@@ -28,7 +36,8 @@ jobs:
           format: table
           output: trivy-results.txt
 
-      - name: Upload scan results
+      # 5. Upload Trivy scan results
+      - name: Upload Trivy results
         uses: actions/upload-artifact@v4
         with:
           name: security-scan-results
