@@ -29,7 +29,7 @@ jobs:
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         with:
-          token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}  # ต้องสร้าง PAT ใน repository secrets
+          token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}  # ใช้ PAT ของคุณ
 
       # 4. Run Trivy vulnerability scan
       - name: Trivy Scan
