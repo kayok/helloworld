@@ -3,8 +3,7 @@ name: CD
 on:
   workflow_run:
     workflows: ["DevSecOps"]
-    types:
-      - completed
+    types: [completed]
 
 jobs:
   deploy:
@@ -15,19 +14,26 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build Docker image
-        run: docker build -t kayok/helloworld:latest .
-
-      - name: Push Docker image
-        run: docker push kayok/helloworld:latest
-
-      - name: Deploy to Server
         run: |
-          echo "Deploying to server..."
-          # ตัวอย่าง: ssh user@server "docker pull kayok/helloworld:latest && docker run -d -p 80:80 kayok/helloworld:latest"
+          docker build -t kayok/helloworld:latest .
+          docker push kayok/helloworld:latest
+
+      # ถ้าเป็น deploy server (SSH) ให้เพิ่มตัวอย่างดังนี้
+      # - name: Deploy to server
+      #   uses: appleboy/ssh-action@v0.1.7
+      #   with:
+      #     host: ${{ secrets.SERVER_HOST }}
+      #     username: ${{ secrets.SERVER_USER }}
+      #     key: ${{ secrets.SERVER_SSH_KEY }}
+      #     script: |
+      #       docker pull kayok/helloworld:latest
+      #       docker stop helloworld || true
+      #       docker rm helloworld || true
+      #       docker run -d --name helloworld -p 8080:8080 kayok/helloworld:latest
