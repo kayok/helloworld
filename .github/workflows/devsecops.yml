@@ -5,7 +5,7 @@ on:
     workflows: ["CI"]
     types: [completed]
   schedule:
-    - cron: "0 19 * * *"
+    - cron: "0 19 * * *"  # ทุกวันตี 2 UTC+7
 
 jobs:
   security-scan:
@@ -13,22 +13,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      # 1. Checkout repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Step 1: Init CodeQL
+      # 2. Initialize CodeQL
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
           languages: go
 
-      # Step 2: Analyze
+      # 3. Perform CodeQL Analysis
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         with:
-          category: "/language:go"
+          token: ${{ secrets.PERSONAL_GITHUB_TOKEN }} # ใช้ PAT ของคุณ
 
-      # Step 3: Trivy scan
+      # 4. Run Trivy vulnerability scan
       - name: Trivy Scan
         uses: aquasecurity/trivy-action@0.14.0
         with:
@@ -37,6 +38,7 @@ jobs:
           format: table
           output: trivy-results.txt
 
+      # 5. Upload Trivy scan results
       - name: Upload scan results
         uses: actions/upload-artifact@v4
         with:
