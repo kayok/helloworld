@@ -1,38 +1,50 @@
 name: DevSecOps
 
+# Trigger
 on:
   workflow_run:
-    workflows: ["CI"]
+    workflows: ["CI"]   # ชื่อ workflow CI ที่ trigger DevSecOps
     types: [completed]
   schedule:
     - cron: "0 19 * * *"  # ทุกวันตี 2 UTC+7
 
+# Workflow permissions
+permissions:
+  contents: read           # อ่าน repository
+  security-events: write   # สำหรับ upload SARIF ของ CodeQL
+
 jobs:
   security-scan:
+    # รันเฉพาะเมื่อ CI ผ่าน หรือ schedule trigger
     if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'schedule' }}
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0  # ให้ CodeQL scan ทุก branch/commit
 
+      # 2. Setup Go
       - name: Setup Go
         uses: actions/setup-go@v4
         with:
           go-version: "1.21"
 
+      # 3. Initialize CodeQL
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
           languages: go
 
+      # 4. Run CodeQL Analysis (ใช้ PAT สำหรับ upload SARIF)
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         with:
           token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}  # PAT ต้องมี repo + security-events
 
+      # 5. Run Trivy scan
       - name: Trivy Scan
         uses: aquasecurity/trivy-action@0.14.0
         with:
@@ -41,6 +53,7 @@ jobs:
           format: table
           output: trivy-results.txt
 
+      # 6. Upload Trivy scan results
       - name: Upload Trivy Scan Results
         uses: actions/upload-artifact@v4
         with:
