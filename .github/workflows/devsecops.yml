@@ -48,7 +48,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_USER_TOKEN }}
         run: |
           sonar-scanner \
-            -Dsonar.projectKey=my-project \
+            -Dsonar.projectKey=helloworld \
             -Dsonar.sources=. \
             -Dsonar.host.url=https://sq.cams.dev/ \
             -Dsonar.login=$SONAR_TOKEN
