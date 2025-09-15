@@ -1,9 +1,6 @@
 name: DevSecOps
 
 on:
-  workflow_run:
-    workflows: ["CI"]
-    types: [completed]
   schedule:
     - cron: "0 19 * * *"  # ทุกวันตี 2 UTC+7
 
@@ -13,14 +10,11 @@ permissions:
 
 jobs:
   security-scan:
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'schedule' }}
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Go
         uses: actions/setup-go@v4
@@ -34,8 +28,6 @@ jobs:
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
-        with:
-          category: "/language:go"
 
       - name: Trivy Scan
         uses: aquasecurity/trivy-action@0.14.0
@@ -50,3 +42,13 @@ jobs:
         with:
           name: security-scan-results
           path: trivy-results.txt
+
+      - name: SonarQube Analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_USER_TOKEN }}
+        run: |
+          sonar-scanner \
+            -Dsonar.projectKey=my-project \
+            -Dsonar.sources=. \
+            -Dsonar.host.url=https://sq.cams.dev/ \
+            -Dsonar.login=$SONAR_TOKEN
