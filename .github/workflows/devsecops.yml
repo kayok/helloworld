@@ -1,8 +1,11 @@
 name: DevSecOps
 
 on:
+  push:
+    branches:
+      - main
   schedule:
-    - cron: "0 19 * * *"  # ทุกวันตี 2 UTC+7
+    - cron: "0 19 * * *"  # ทุกวัน 19:00 UTC (ตี 2 เวลาไทย)
 
 permissions:
   contents: read
@@ -13,22 +16,34 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Checkout code
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
+      # 2️⃣ Setup Go
       - name: Setup Go
         uses: actions/setup-go@v4
         with:
           go-version: "1.21"
 
+      # 3️⃣ Run Go tests and generate coverage
+      - name: Run Go Tests
+        run: |
+          go test ./... -coverprofile=coverage.out
+
+      # 4️⃣ Initialize CodeQL
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
           languages: go
 
+      # 5️⃣ Perform CodeQL Analysis
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
 
+      # 6️⃣ Trivy Scan
       - name: Trivy Scan
         uses: aquasecurity/trivy-action@0.14.0
         with:
@@ -37,12 +52,14 @@ jobs:
           format: table
           output: trivy-results.txt
 
+      # 7️⃣ Upload Trivy results
       - name: Upload Trivy Scan Results
         uses: actions/upload-artifact@v4
         with:
           name: security-scan-results
           path: trivy-results.txt
 
+      # 8️⃣ SonarQube Analysis
       - name: SonarQube Analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_USER_TOKEN }}
@@ -51,4 +68,6 @@ jobs:
             -Dsonar.projectKey=helloworld \
             -Dsonar.sources=. \
             -Dsonar.host.url=https://sq.cams.dev/ \
-            -Dsonar.login=$SONAR_TOKEN
+            -Dsonar.login=$SONAR_TOKEN \
+            -Dsonar.go.coverage.reportPaths=coverage.out \
+            -Dsonar.sourceEncoding=UTF-8
