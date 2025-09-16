@@ -74,24 +74,24 @@ jobs:
         uses: actions/cache@v3
         id: sonar-cache
         with:
-          path: sonar-scanner-5.15.0.22101-linux
-          key: sonar-scanner-5.15-${{ runner.os }}
+          path: sonar-scanner-4.10.0.19085-linux
+          key: sonar-scanner-4.10-${{ runner.os }}
           restore-keys: |
-            sonar-scanner-5.15-${{ runner.os }}
+            sonar-scanner-4.10-${{ runner.os }}
 
       # 🔟 SonarQube Analysis
       - name: SonarQube Analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_USER_TOKEN }}
         run: |
-          # ดาวน์โหลดและ unzip เฉพาะถ้า cache ว่าง
-          if [ ! -d "sonar-scanner-5.15.0.22101-linux" ]; then
-            wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.15.0.22101-linux.zip
-            unzip sonar-scanner-cli-5.15.0.22101-linux.zip
+          # ดาวน์โหลดและ unzip ถ้า cache ว่าง
+          if [ ! -d "sonar-scanner-4.10.0.19085-linux" ]; then
+            wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.10.0.19085-linux.zip
+            unzip sonar-scanner-cli-4.10.0.19085-linux.zip
           fi
 
           # ตั้ง PATH
-          export PATH=$PWD/sonar-scanner-5.15.0.22101-linux/bin:$PATH
+          export PATH=$PWD/sonar-scanner-4.10.0.19085-linux/bin:$PATH
 
           # ตรวจสอบ version
           sonar-scanner -v
