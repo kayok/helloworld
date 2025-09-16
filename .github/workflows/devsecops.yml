@@ -28,13 +28,10 @@ jobs:
         with:
           go-version: "1.21"
 
-    # 3️⃣ Run Go tests and generate coverage
-      - name: Run Go Tests and Generate Coverage
+      # 3️⃣ Run Go tests and generate coverage
+      - name: Run Go Tests
         run: |
           go test ./... -coverprofile=coverage.out
-          echo "====== Coverage Summary ======"
-          go tool cover -func=coverage.out
-          echo "=============================="
 
       # 4️⃣ Initialize CodeQL
       - name: Initialize CodeQL
