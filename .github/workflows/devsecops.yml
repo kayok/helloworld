@@ -71,6 +71,3 @@ jobs:
             -Dsonar.login=$SONAR_TOKEN \
             -Dsonar.go.coverage.reportPaths=coverage.out \
             -Dsonar.sourceEncoding=UTF-8
-
-
-            
