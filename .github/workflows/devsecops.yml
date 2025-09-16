@@ -28,7 +28,7 @@ jobs:
         with:
           go-version: "1.21"
 
-      # 3️⃣ Run Go tests and generate coverage
+    # 3️⃣ Run Go tests and generate coverage
       - name: Run Go Tests and Generate Coverage
         run: |
           go test ./... -coverprofile=coverage.out
@@ -74,3 +74,6 @@ jobs:
             -Dsonar.login=$SONAR_TOKEN \
             -Dsonar.go.coverage.reportPaths=coverage.out \
             -Dsonar.sourceEncoding=UTF-8
+
+
+            
