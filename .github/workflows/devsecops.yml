@@ -70,5 +70,5 @@ jobs:
             -Dsonar.host.url=https://sq.cams.dev/ \
             -Dsonar.login=$SONAR_TOKEN \
             -Dsonar.go.coverage.reportPaths=coverage.out \
-            -Dsonar.sourceEncoding=UTF-8
+            -Dsonar.sourceEncoding=UTF-8 \
             -Dsonar.ssl.ignore=true
