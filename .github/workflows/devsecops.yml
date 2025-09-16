@@ -28,22 +28,32 @@ jobs:
         with:
           go-version: "1.21"
 
-      # 3️⃣ Run Go tests and generate coverage
-      - name: Run Go Tests
-        run: |
-          go test ./... -coverprofile=coverage.out
+      # 3️⃣ Cache Go modules
+      - name: Cache Go modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: go-modules-${{ runner.os }}-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            go-modules-${{ runner.os }}-
 
-      # 4️⃣ Initialize CodeQL
+      # 4️⃣ Run Go tests and generate coverage
+      - name: Run Go Tests
+        run: go test ./... -coverprofile=coverage.out
+
+      # 5️⃣ Initialize CodeQL
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
           languages: go
 
-      # 5️⃣ Perform CodeQL Analysis
+      # 6️⃣ Perform CodeQL Analysis
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
 
-      # 6️⃣ Trivy Scan
+      # 7️⃣ Trivy Scan
       - name: Trivy Scan
         uses: aquasecurity/trivy-action@0.14.0
         with:
@@ -52,27 +62,41 @@ jobs:
           format: table
           output: trivy-results.txt
 
-      # 7️⃣ Upload Trivy results
+      # 8️⃣ Upload Trivy results
       - name: Upload Trivy Scan Results
         uses: actions/upload-artifact@v4
         with:
           name: security-scan-results
           path: trivy-results.txt
 
-      # 8️⃣ SonarQube Analysis
+      # 9️⃣ Cache Sonar Scanner
+      - name: Cache Sonar Scanner
+        uses: actions/cache@v3
+        id: sonar-cache
+        with:
+          path: sonar-scanner-5.15.0.22101-linux
+          key: sonar-scanner-5.15-${{ runner.os }}
+          restore-keys: |
+            sonar-scanner-5.15-${{ runner.os }}
+
+      # 🔟 SonarQube Analysis
       - name: SonarQube Analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_USER_TOKEN }}
         run: |
-          # ติดตั้ง Sonar Scanner ทุกครั้ง
-          wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.15.0.22101-linux.zip
-          unzip sonar-scanner-cli-5.15.0.22101-linux.zip
+          # ดาวน์โหลดและ unzip เฉพาะถ้า cache ว่าง
+          if [ ! -d "sonar-scanner-5.15.0.22101-linux" ]; then
+            wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.15.0.22101-linux.zip
+            unzip sonar-scanner-cli-5.15.0.22101-linux.zip
+          fi
+
+          # ตั้ง PATH
           export PATH=$PWD/sonar-scanner-5.15.0.22101-linux/bin:$PATH
 
-          # ตรวจสอบว่าติดตั้งเรียบร้อย
+          # ตรวจสอบ version
           sonar-scanner -v
 
-          # รัน SonarQube
+          # Run SonarQube
           sonar-scanner \
             -Dsonar.projectKey=helloworld \
             -Dsonar.sources=. \
