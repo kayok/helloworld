@@ -39,7 +39,7 @@ jobs:
           restore-keys: |
             go-modules-${{ runner.os }}-
 
-      # 4️⃣ Run Go tests and generate coverage
+      # 4️⃣ Run Go tests + coverage
       - name: Run Go Tests
         run: go test ./... -coverprofile=coverage.out
 
