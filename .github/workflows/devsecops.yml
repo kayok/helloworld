@@ -74,10 +74,19 @@ jobs:
         uses: actions/cache@v3
         id: sonar-cache
         with:
-          path: sonar-scanner-5.0.1.3006-linux  # แก้ไขชื่อโฟลเดอร์ให้ตรงกับเวอร์ชันใหม่
-          key: sonar-scanner-5.0.1-${{ runner.os }} # แก้ไข key
+          path: sonar-scanner-5.0.1.3006-linux
+          key: sonar-scanner-5.0.1-${{ runner.os }}
           restore-keys: |
             sonar-scanner-5.0.1-${{ runner.os }}
+
+      # 9.5️⃣ ทดสอบการเชื่อมต่อ SonarQube
+      - name: Test SonarQube Server Connection
+        run: |
+          echo "Testing connection to SonarQube server at ${{ secrets.SONAR_HOST_URL }}"
+          curl --head --silent --show-error --connect-timeout 10 ${{ secrets.SONAR_HOST_URL }}
+          echo "Connection test complete."
+        env:
+          SONAR_HOST_URL: https://sq.cams.dev/
 
       # 🔟 SonarQube Analysis
       - name: SonarQube Analysis
@@ -86,7 +95,7 @@ jobs:
         run: |
           # ดาวน์โหลดและ unzip ถ้า cache ว่าง
           if [ ! -d "sonar-scanner-5.0.1.3006-linux" ]; then
-            wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip # แก้ไข URL
+            wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
             unzip sonar-scanner-cli-5.0.1.3006-linux.zip
           fi
           
