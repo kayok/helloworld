@@ -13,7 +13,10 @@ permissions:
 
 jobs:
   security-scan:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        runner: [ubuntu-latest]  # เปลี่ยนเป็น self-hosted runner ของคุณได้
 
     steps:
       # 1️⃣ Checkout code
@@ -64,6 +67,14 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_USER_TOKEN }}
         run: |
+          # สำหรับ Hosted Runner: ติดตั้ง Sonar Scanner
+          if ! command -v sonar-scanner &> /dev/null
+          then
+            wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.10.0.19085-linux.zip
+            unzip sonar-scanner-cli-4.10.0.19085-linux.zip
+            export PATH=$PWD/sonar-scanner-4.10.0.19085-linux/bin:$PATH
+          fi
+
           sonar-scanner \
             -Dsonar.projectKey=helloworld \
             -Dsonar.sources=. \
