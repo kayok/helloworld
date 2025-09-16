@@ -97,7 +97,7 @@ jobs:
           sonar-scanner -v
           
           # Run SonarQube
-          sonar-scanner \
+          sonar-scanner -X \
             -Dsonar.projectKey=helloworld \
             -Dsonar.sources=. \
             -Dsonar.host.url=https://sq.cams.dev/ \
