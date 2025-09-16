@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   security-scan:
-    runs-on: self-hosted   # ✅ ใช้ self-hosted runner ใน network ของคุณ
+    runs-on: ubuntu-latest
 
     steps:
       # 1️⃣ Checkout repository
@@ -69,24 +69,47 @@ jobs:
           name: security-scan-results
           path: trivy-results.txt
 
+      # 9️⃣ Cache Sonar Scanner
+      - name: Cache Sonar Scanner
+        uses: actions/cache@v3
+        id: sonar-cache
+        with:
+          path: sonar-scanner-5.0.1.3006-linux
+          key: sonar-scanner-5.0.1-${{ runner.os }}
+          restore-keys: |
+            sonar-scanner-5.0.1-${{ runner.os }}
+
+      # 9.5️⃣ ทดสอบการเชื่อมต่อ SonarQube
+      - name: Test SonarQube Server Connection
+        run: |
+          SONAR_URL="https://sq.cams.dev/"
+          echo "Testing connection to SonarQube server at $SONAR_URL"
+          curl --head --silent --show-error --connect-timeout 10 "$SONAR_URL"
+          echo "Connection test complete."
+
       # 🔟 SonarQube Analysis
       - name: SonarQube Analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_USER_TOKEN }}
         run: |
-          # ดาวน์โหลดและ unzip ถ้าไม่มี
+          # ดาวน์โหลดและ unzip ถ้า cache ว่าง
           if [ ! -d "sonar-scanner-5.0.1.3006-linux" ]; then
             wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
             unzip sonar-scanner-cli-5.0.1.3006-linux.zip
           fi
-
+          
+          # ตั้ง PATH
           export PATH=$PWD/sonar-scanner-5.0.1.3006-linux/bin:$PATH
+          
+          # ตรวจสอบ version
           sonar-scanner -v
-
+          
+          # Run SonarQube
           sonar-scanner -X \
-            -Dsonar.projectKey=helloworld \
-            -Dsonar.sources=. \
-            -Dsonar.host.url=https://sq.cams.dev/ \
-            -Dsonar.login=$SONAR_TOKEN \
-            -Dsonar.go.coverage.reportPaths=coverage.out \
-            -Dsonar.sourceEncoding=UTF-8
+          -Dsonar.projectKey=helloworld \
+          -Dsonar.sources=. \
+          -Dsonar.host.url=https://sq.cams.dev/ \
+          -Dsonar.login=$SONAR_TOKEN \
+          -Dsonar.go.coverage.reportPaths=coverage.out \
+          -Dsonar.sourceEncoding=UTF-8 \
+          -Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts
